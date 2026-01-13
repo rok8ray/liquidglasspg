@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>MR KOCHEVAR SIMULATOR</title>
+    <link rel="icon" type="image/x-icon" href="https://i.postimg.cc/fyMmR1Mv/favicon.png">
+    <style>
+      body { margin: 0; }
+      canvas { display: block; }
+      .textbox {
+        position: absolute;
+        color: white;
+        background-color: rgba(0, 0, 0, 0.5);
+        padding: 10px;
+        border-radius: 5px;
+        top: 20px;
+        left: 20px;
+      }
+      .caffeine {
+        position: absolute;
+        color: white;
+        background-color: brown;
+        padding: 10px;
+        border-radius: 5px;
+        top: 20px;
+        right: 20px;
+      }
+      #hotbar {
+        position: fixed;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 8px;
+        z-index: 10;
+      }
+
+      .slot {
+        width: 50px;
+        height: 50px;
+        border: 2px solid white;
+        background-color: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        color: white;
+        border-radius: 5px;
+      }
+
+      .slot.selected {
+        border-color: yellow;
+      }
+      img {
+        width: 70%;
+        height: 70%;
+      }
+      .shop {
+        display: none;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: lightgray;
+        color: gray;
+        padding: 20px;
+        border-radius: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="textbox" class="textbox"></div>
+    <div id="caffeine" class="caffeine">0</div>
+    <div id="hotbar">
+      <div class="slot selected" data-slot="0"></div>
+      <div class="slot" data-slot="1"></div>
+      <div class="slot" data-slot="2"></div>
+      <div class="slot" data-slot="3"></div>
+      <div class="slot" data-slot="4"></div>
+      <div class="slot" data-slot="5"></div> <!-- six seven 🗣️🗣️🗣️🔥🔥🔥🔥-->
+      <div class="slot" data-slot="6"></div>
+      <div class="slot" data-slot="7"></div>
+      <div class="slot" data-slot="8"></div>
+    </div>
+    <div id="shop" class="shop">Shop<br>
+      <details>
+        <summary>Coffee Maker</summary>
+        <button id="beansRestock">Restock coffee beans</button><br><p id="beansLeft">beansleft</p>
+        <button id="cmLvlUp">Upgrade coffee maker speed</button><p id="levelDisplay">lvl</p>
+        <button id="beanLvlUp">Upgrade bean container</button><p id="beanContDisplay">bcd</p>
+      </details>
+      <button id="closeShopButton">Close</button>
+    </div>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.140.2/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.140.2/examples/js/controls/PointerLockControls.js"></script>
+  <script>
+  let speed = 0.2
+  let caffeine = 0
+  let beans = 10
+  let coffeeMakerSpd = 10000
+  let beansCont = 10
+  let bcCost = 15
+  let coffeeStr = 1
+  
+  document.getElementById("caffeine").textContent = caffeine;
+  
+  document.getElementById("levelDisplay").textContent = "Seconds: " + (coffeeMakerSpd / 1000);
+  document.getElementById("beanContDisplay").textContent = "Max beans: " + beansCont;
+  document.getElementById("beansLeft").textContent = "Beans left: " + beans;
+  
+  document.getElementById("beansRestock").addEventListener("click", beansRestock);
+  document.getElementById("beanLvlUp").addEventListener("click", upBeansCont);
+  document.getElementById("cmLvlUp").addEventListener("click", upCoffeeMakerSpd);
+
+  const scene = new THREE.Scene();
+	const camera = new THREE.PerspectiveCamera(
+    	75,
+    	window.innerWidth / window.innerHeight,
+   		0.1,
+    	1000
+	);
+	const textbox = document.getElementById("textbox");
+  const msgList = [];
+  
+  function type(text, sec) {
+    msgList.push(text);
+    textbox.innerHTML = msgList.join("<br>");
+    setTimeout(() => {
+      msgList.shift();
+      textbox.innerHTML = msgList.join("<br>");
+    }, 2000);
+  }
+  
+	function changeCaffeine(amount) {
+	  caffeine += amount
+	  document.getElementById("caffeine").textContent = caffeine
+	}
+	
+	let selectedSlot = 0;
+	const slots = document.querySelectorAll("#hotbar .slot");
+	let hotbarItems = [null, null, null, null, null, null, null, null, null]
+	
+	function closeShop() {
+	  controls.lock();
+	  const shop = document.getElementById("shop")
+	  shop.style.display = "none";
+	};
+	
+	function openShop() {
+	  controls.unlock();
+	  document.getElementById("levelDisplay").textContent = "Seconds: " + (coffeeMakerSpd / 1000);
+    document.getElementById("beanContDisplay").textContent = "Max beans: " + beansCont;
+    document.getElementById("beansLeft").textContent = "Beans left: " + beans;
+	  const shop = document.getElementById("shop");
+	  shop.style.display = "block";
+	};
+	
+	function beansRestock() {
+	  if (beans <= beansCont) {
+	    type("Already restocked!");
+	    return;
+	  }
+	  if (caffeine >= beansCont) {
+	    beans = beansCont
+	    caffeine -= beansCont;
+	    document.getElementById("beansLeft").textContent = "Beans left: " + beans;
+	  } else {
+	    type("Not enough caffeine!");
+	  }
+	};
+	
+	function upBeansCont() {
+	  if (caffeine >= bcCost) {
+	    caffeine -= bcCost;
+	    beansCont += 5
+	    bcCost += 10;
+	    type("Beans container upgraded by 5!");
+	    beans = beansCont
+	    caffeine -= beansCont;
+	    document.getElementById("beansLeft").textContent = "Beans left: " + beans;
+	    document.getElementById("beanContDisplay").textContent = "Max beans: " + beansCont;
+	  } else {
+	    type("Not enough caffeine!")
+	  }
+	}
+	
+	function upCoffeeMakerSpd() {
+	  if (coffeeMakerSpd <= 500) {
+	    type("Maxed out!");
+	    return;
+	  }
+	  if (caffeine >= 10) {
+	    coffeeMakerSpd = Math.max(500, coffeeMakerSpd - 500);
+	    caffeine -= 10
+	    document.getElementById("levelDisplay").textContent = "Seconds:" + (coffeeMakerSpd / 1000);
+	  } else {
+	    type("Not enough caffeine!");
+	  }
+	}
+	
+	document.getElementById("closeShopButton").addEventListener("click", closeShop);
+	
+	const coffee = { name: "Coffee", icon: "https://th.bing.com/th/id/OIP.4PhvWREl7oql9Jq4qJi5RgHaHa?w=120&h=120&c=8&rs=1&qlt=62&o=7&cb=thws5&dpr=1.3&pid=3.1&rm=3" };
+	
+	document.addEventListener("keydown", (e) => {
+	  if (e.key >= "1" && e.key <= String(slots.length)) {
+	    selectedSlot = Number(e.key) - 1;
+	    selectSlot(selectedSlot);
+	  }
+	});
+	
+	window.addEventListener("wheel", (e) => {
+    if (e.deltaY < 0) {
+      selectedSlot = (selectedSlot - 1 + slots.length) % slots.length;
+    } else {
+      selectedSlot = (selectedSlot + 1) % slots.length;
+    }
+    selectSlot(selectedSlot);
+  });
+	
+	function addItemToSlot(item, index) {
+	  hotbarItems[index] = item;
+	  slots[index].innerHTML = "";
+	  if(item.icon) {
+	    const img = document.createElement('img')
+	    img.src = item.icon;
+	    slots[index].appendChild(img);
+	  }
+	}
+	
+	function addItemToEmptySlot(item) {
+	  const emptyIndex = hotbarItems.findIndex(i => i === null);
+	  if (emptyIndex !== -1) addItemToSlot(item, emptyIndex);
+	}
+	
+	function selectSlot(index) {
+	  selectedSlot = index;
+	  slots.forEach((slot, i) => {
+	    slot.classList.toggle("selected", i === index);
+	  });
+	}
+	
+	slots.forEach((slot, i) => {
+    slot.addEventListener('click', () => selectSlot(i));
+  });
+
+	document.addEventListener("keydown", (e) => {
+	  if (e.key >= "1" && e.key <= String(slots.length)) {
+	    selectedSlot = Number(e.key) - 1;
+	    selectSlot(selectedSlot);
+	  }
+	});
+  const raycaster = new THREE.Raycaster();
+  const mouse = new THREE.Vector2();
+
+  camera.position.set(0, 1.6, 0);
+  const playerBox = new THREE.Box3().setFromCenterAndSize(
+		new THREE.Vector3(camera.position.x, camera.position.y - 1, camera.position.z),
+    new THREE.Vector3(1, 2, 1)
+	);
+	const renderer = new THREE.WebGLRenderer();
+	renderer.setSize(window.innerWidth, window.innerHeight);
+	document.body.appendChild(renderer.domElement);
+
+	const loader = new THREE.TextureLoader();
+
+	loader.load('https://tse3.mm.bing.net/th/id/OIP.B0uYJvExC6JMP-ZI38ZJ0gHaFj?rs=1&pid=ImgDetMain&o=7&rm=3', (texture) => {
+ 		texture.mapping = THREE.EquirectangularReflectionMapping;
+  		scene.background = texture;
+	});
+
+	const brick = loader.load('https://threejs.org/examples/textures/brick_diffuse.jpg');
+	const wood = loader.load('https://media.istockphoto.com/id/1423614623/photo/bamboo-wood-texture-background.jpg?s=612x612&w=0&k=20&c=eOGzTIhcgyI8JO2B6-2Go8kCzcin59hjK6eZtiz6uDo=');
+	const metal = loader.load('https://tse3.mm.bing.net/th/id/OIP.wyVItztT5A1pJOQtoiwq9QHaF1?pid=ImgDet&w=474&h=373&rs=1&o=7&rm=3');
+	const blank = loader.load('https://threejs.org/examples/textures/uv_grid_opengl.jpg');
+    const marble = loader.load('https://tse2.mm.bing.net/th/id/OIP.WN3rY8vdR45KosB6qyn8hAHaDt?rs=1&pid=ImgDetMain&o=7&rm=3');
+    const suskr = loader.load("https://i.ytimg.com/vi/tfFFyJLKrN0/hqdefault.jpg");
+  const phone = loader.load("https://i.postimg.cc/zBY8KrbT/phone.png")
+	scene.add(new THREE.AmbientLight(0xffffff, 0.4)); // Ambient
+	const dirLight = new THREE.DirectionalLight(0xffffff, 1); // Directional
+	dirLight.position.set(5, 10, 5); // POSITION of directional
+	scene.add(dirLight);
+    
+	const cubes = [];
+	const cubeBoxes = [];
+	let coffeeCooldown = 0
+	
+    window.addEventListener('click', (event) => {
+      if (event.target.closest(".shop") || event.target.tagName === "BUTTON") {
+        return;
+      }
+      
+    	mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        
+        raycaster.setFromCamera(mouse, camera);
+        
+        const intersects = raycaster.intersectObjects(cubes);
+        
+        if (intersects.length > 0) {
+        	const clicked = intersects[0].object;
+        	// if (clicked === suskrCube) {
+          //  	type("God DANG IT Kris, where the HECK are we?!");
+          //  }
+            if (clicked === coffeeMachine) {
+              const now = Date.now();
+              if (beans !== 0) {
+            	  if (now >= coffeeCooldown) {
+            	    type("Making coffee");
+            	    coffeeCooldown = now + coffeeMakerSpd
+            	    setTimeout(() => {
+            	      type("Coffee is ready");
+            	      addItemToEmptySlot(coffee);
+            	      beans -= 1
+            	    }, coffeeMakerSpd);
+                } else {
+                  type("Be patient bozo");
+                }
+              } else {
+                type("You're out of beans!");
+                type("Why don't you call up the coffee guy for some more?");
+              }
+            }
+           if (clicked === phoneCube) {
+             openShop();
+           }
+        }
+    });
+  
+  let baseSpeed = 0.2;
+  let coffeeBoosts = 0;
+  const maxBoosts = 5;
+  
+  function currentSpeed() {
+    return baseSpeed + coffeeBoosts * 0.2;
+  }
+  
+  function useSelectedItem() {
+    const item = hotbarItems[selectedSlot];
+    if (!item) {
+      type("Can't use what you don't have");
+      return;
+    }
+    
+    if (item.name === "Coffee") {
+      if (coffeeBoosts < maxBoosts) {
+        coffeeBoosts++;
+        type("glug glug glug");
+        hotbarItems[selectedSlot] = null;
+        slots[selectedSlot].innerHTML = "";
+        changeCaffeine(1);
+      
+        setTimeout(() => {
+          coffeeBoosts--;
+        }, 30000);
+      } else {
+        type("Feels good, but your legs can't go any faster!")
+        hotbarItems[selectedSlot] = null;
+        slots[selectedSlot].innerHTML = "";
+      }
+    }
+  };
+  
+  document.addEventListener("keydown", (e) => {
+    if (e.code === "KeyE") {
+      useSelectedItem();
+    }
+  });
+  
+	function makeCube(xs = 1, ys = 1, zs = 1, x = 0, y = 0, z = 0, texture) {
+		const geometry = new THREE.BoxGeometry(xs, ys, zs);
+		const material = new THREE.MeshStandardMaterial({ 
+        	map: texture
+        });
+		const cube = new THREE.Mesh(geometry, material);
+		
+		scene.add(cube);
+        cubes.push(cube);
+        
+        cube.position.set(x, y, z);
+		const cubeBox = new THREE.Box3().setFromObject(cube);
+        cubeBoxes.push(cubeBox);
+		return cube;
+	}
+   	function makeCubeHitbox(xs = 1, ys = 1, zs = 1, x = 0, y = 0, z = 0) {
+		const geometry = new THREE.BoxGeometry(xs, ys, zs);
+		const material = new THREE.MeshStandardMaterial({ 
+            transparent: true,
+            opacity: 0,
+            wireframe: true
+        });
+		const cube = new THREE.Mesh(geometry, material);
+
+		scene.add(cube);
+        cubes.push(cube);
+        
+        cube.position.set(x, y, z);
+		const cubeBox = new THREE.Box3().setFromObject(cube);
+        cubeBoxes.push(cubeBox);
+		return cube;
+	}
+
+	const controls = new THREE.PointerLockControls(camera, document.body);
+	scene.add(controls.getObject());
+	renderer.domElement.addEventListener('click', () => {
+    	controls.lock();
+	});
+
+	const keys = {};
+	document.addEventListener('keydown', (e) => keys[e.code] = true);
+	document.addEventListener('keyup', (e) => keys[e.code] = false);
+    
+    function tryMove(forward, right) {
+    	const testBox = playerBox.clone();
+        const tempPos = camera.position.clone();
+        
+        const angle = camera.rotation.y;
+        const dir = new THREE.Vector3();
+        
+        if (forward !== 0) {
+        	controls.getDirection(dir);
+            dir.y = 0;
+            dir.normalize();
+            tempPos.addScaledVector(dir, forward * currentSpeed());
+        }
+        
+        if (right !== 0) {
+        	controls.getDirection(dir);
+            dir.y = 0;
+            dir.normalize();
+            dir.cross(camera.up);
+            tempPos.addScaledVector(dir, right * currentSpeed());
+        }
+        
+        testBox.setFromCenterAndSize(
+    		new THREE.Vector3(tempPos.x, tempPos.y - 1, tempPos.z),
+    		new THREE.Vector3(1, 2, 1)
+        );
+        
+       	for (let i = 0; i < cubeBoxes.length; i++) {
+    		if (testBox.intersectsBox(cubeBoxes[i])) {
+        		return;
+    		}
+        }
+        
+        camera.position.copy(tempPos);
+    }
+    
+	function updatePlayerBox() {
+    	playerBox.setFromCenterAndSize(
+			new THREE.Vector3(camera.position.x, camera.position.y - 1, camera.position.z),
+        	new THREE.Vector3(1, 2, 1)
+        );
+	}
+
+	function animate() {
+		requestAnimationFrame(animate);
+		updatePlayerBox();
+        
+      	if (keys['KeyW']) tryMove(1, 0);
+      	if (keys['KeyS']) tryMove(-1, 0);
+      	if (keys['KeyA']) tryMove(0, -1);
+      	if (keys['KeyD']) tryMove(0, 1);
+        document.getElementById("caffeine").textContent = caffeine;
+        document.getElementById("levelDisplay").textContent = "Seconds: " + (coffeeMakerSpd / 1000);
+         document.getElementById("beanContDisplay").textContent = "Max beans: " + beansCont;
+        document.getElementById("beansLeft").textContent = "Beans left: " + beans;
+		    renderer.render(scene, camera);
+	  }
+  
+	  makeCube(100, 2, 80, 0, 10, 0, wood);
+    makeCube(100, 2, 80, 0, -10, 0, wood);
+    makeCube(2, 30, 80, 40, 0, 0, wood);
+    makeCube(2, 30, 80, -40, 0, 0, wood);
+    makeCube(80, 30, 2, 0, 0, 40, wood);
+    makeCube(80, 30, 2, 0, 0, -40, wood);
+    makeCube(10, 8, 80, -35, -6.5, 0, marble);
+    makeCubeHitbox(11, 8, 80, -36, 0, 0);
+    const phoneCube = makeCube(4, 4, 4, 30, 0, -40, phone);
+    const coffeeMachine = makeCube(10, 10, 10, -35, 2.5, 0, metal);
+    // const suskrCube = makeCube(14, 14, 14, 0, 0, -14.8, suskr);
+	animate();
+  </script>
+    <div style="margin:10,10,10,10"></div>
+
+</body>
+</html>
