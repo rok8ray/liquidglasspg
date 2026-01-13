@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+h2:hover {
+	cursor: pointer;
+}
+</style>
+</head>
+<body style="background-color:black;font-family:Verdana;user-select:none">
+<audio controls hidden id="scream">
+  <source src="https://raw.githubusercontent.com/rok8ray/funnisounds/refs/heads/main/stalker.mp3" type="audio/ogg">
+Your browser does not support the audio element.
+</audio>
+<audio controls hidden id="snap">
+  <source src="https://raw.githubusercontent.com/rok8ray/funnisounds/refs/heads/main/Sans_Stick%20Snap.mp3" type="audio/ogg">
+Your browser does not support the audio element.
+</audio>
+<img id="titlemason" src="https://pbs.twimg.com/media/Gz_lafCWUAEgPhS.jpg" style="position:fixed;margin:107px 0px 0px 257px" height="400px"width="400px">
+<img id="gameBG" src="https://media.istockphoto.com/id/1195685791/photo/close-up-view-of-a-basketball-court-with-wooden-floor-and-spotlights.jpg?s=612x612&amp;w=0&amp;k=20&amp;c=bvn-t_BnVIO7LFjly--_Cpry4u_w_Y-OlW6-1n1EOwo=" width="100%" height="575vh" style="position:fixed;display:none">
+<img id="mason" src="https://pbs.twimg.com/media/Gz_lafCWUAEgPhS.jpg" style="position:fixed;margin:237px 0px 0px 307px;display:none" height="100px"width="100px">
+<img id="static" src="https://upload.wikimedia.org/wikipedia/commons/0/02/Television_static.gif" style="opacity:0.5;position:fixed" width="100%" height="575vh">
+<span id="title">
+<h1 style="color:white;position:fixed;margin:67px 0px 0px 67px">6 or 7</h1>
+<h1 style="color:white;position:fixed;margin:107px 0px 0px 67px">Nights at</h1>
+<h1 style="color:white;position:fixed;margin:147px 0px 0px 67px">Mason's</h1>
+</span>
+<span id="buttons">
+<h2 style="color:white;position:fixed;margin:227px 0px 0px 67px" onclick="play()">> Play</h2>
+<h2 onclick="options()" style="color:white;position:fixed;margin:267px 0px 0px 67px">> Options</h2>
+</span>
+<span id="gametxt" style="display:none">
+<h4 id="energy" style="color:white;position:fixed;margin:67px 0px 0px 67px">Energy: 100</h4>
+</span>
+<script>
+	let placesURLs = ["https://media.istockphoto.com/id/1195685791/photo/close-up-view-of-a-basketball-court-with-wooden-floor-and-spotlights.jpg?s=612x612&w=0&k=20&c=bvn-t_BnVIO7LFjly--_Cpry4u_w_Y-OlW6-1n1EOwo=", "https://media.istockphoto.com/id/1195558598/photo/basketball-court-with-wooden-floor-and-a-basketball-hoop.jpg?s=612x612&w=0&k=20&c=Ngw-lKaYSnLxoZp4p0NswVcng91KfM1y6FwfA0oPt9I=", "https://img.freepik.com/premium-photo/low-angle-view-basketball-hoop-playground-night_1048944-4523087.jpg?semt=ais_hybrid&w=740&q=80", "https://c.stocksy.com/a/o1l300/z9/895764.jpg"]
+    
+    let indexN = 0
+    let energy = 100
+    let spawnedMason = 0
+    const mason = document.getElementById("mason");
+   	const scream = document.getElementById("scream");
+    const snap = document.getElementById("snap");
+    
+    function updateEnergy() {
+    	document.getElementById("energy").textContent = "Energy: " + energy
+    }
+    
+    function trySpawnCreature() {
+    	const spawn = Math.floor(Math.random() * 11);
+        console.log(spawn);
+        if (spawn === 10) {
+        	mason.style.display = "block";
+            spawnedMason = 1; 
+        };	
+    }
+    
+    // function
+    
+function gameOver() {
+    mason.style.display = "block";
+    mason.style.transition = "transform 1s ease";
+    mason.style.transformOrigin = "center";
+    mason.style.transform = "scale(1)";
+
+    setTimeout(() => {
+        mason.style.transform = "scale(67)";
+        scream.play();
+        setTimeout(() => {
+        	document.documentElement.innerHTML = "<!doctype html><h1>467 Forbidden</h1><p>nginx</p>"
+        }, 500);
+    }, 50);
+    
+    
+}
+    
+	function play() {
+    	event.preventDefault();
+        titleE = document.getElementById("title");
+        buttonsE = document.getElementById("buttons");
+        tmasonE = document.getElementById("titlemason");
+        staticE = document.getElementById("static");
+        gameBGE = document.getElementById("gameBG");
+        gameTxtE = document.getElementById("gametxt");
+        titleE.style.display = 'none';
+        buttonsE.style.display = 'none';
+        tmasonE.style.display = 'none';
+        staticE.style.opacity = '0.25';
+        gameBGE.style.display = 'block';
+        gameTxtE.style.display = 'block';
+        
+        document.addEventListener('keydown', (event) => {
+        	switch(event.key) {
+            	case 'ArrowRight':
+                if (energy !== 0) {
+                	indexN += 1
+                    energy -= 1
+                    if (indexN === placesURLs.length) {
+                    	indexN = 0
+                    }
+                    gameBGE.src = placesURLs[indexN];
+                    if (spawnedMason === 1) {
+                    	gameOver();
+                    }
+                    trySpawnCreature();
+                    updateEnergy();
+                	break;
+                }
+                case 'ArrowLeft':
+                if (energy !== 0) {
+                	indexN -= 1
+                    energy -= 1
+                    if (indexN === -1) {
+                    	indexN = placesURLs.length - 1
+                    }
+                    gameBGE.src = placesURLs[indexN];
+                    if (spawnedMason === 1) {
+                    	gameOver();
+                    }
+                    trySpawnCreature();
+                    updateEnergy();
+                    break;
+                }
+                case ' ':
+                if (energy !== 0) {
+                	if (gameBGE.style.filter !== "brightness(200%)") {
+                		gameBGE.style.filter = "brightness(200%)";
+                    	energy -= 5
+                    	updateEnergy();
+                        mason.style.display = "none";
+                        snap.play();
+                        spawnedMason = 0
+                    	setTimeout(() => {
+                    		gameBGE.style.filter = "brightness(100%)"
+                    	}, 2000);
+                   		break;
+                    }
+                }
+          	}
+        });
+   	}
+    
+    function options() {
+    	window.alert("Sorry not working rn");
+    }
+</script>
+</body>
+
+</html>
+
+
+

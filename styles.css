@@ -1,0 +1,84 @@
+body {
+  font-family: Inter;
+  background-image: url("https://thvnext.bing.com/th/id/OIP.17GptCcPBgoS3LB73DIgIwHaE8?o=7&cb=12rm=3&rs=1&pid=ImgDetMain&o=7&rm=3&adlt=strict");
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+header {
+  background-color: rgba(217, 165, 33, 0.45);
+  backdrop-filter: blur(7px);
+  border-radius: 20px;
+  border: 5px inset rgb(255 255 255 / 5%);
+  top: 10px;
+  /* position: relative;*/
+  padding: 50px 20px;
+}
+.all {
+  background-color: white;
+  text-align: center;
+  margin: 5px;
+}
+a:link, a:visited {
+  color: white
+}
+
+/* Liquid glass section */
+
+.liqGlass {
+  background-color: rgb(255 255 255 / 15%);
+  backdrop-filter: blur(7px);
+  border-radius: 20px;
+  border: 5px inset rgb(255 255 255 / 5%);
+  text-align: center;
+  font-family: Inter;
+  color: white;
+}
+.liqGlassRed {
+    background-color: rgb(255 255 255 / 15%);
+    backdrop-filter: blur(7px);
+    border-radius: 20px;
+    border: 5px ridge rgb(128 0 0 / 5%);
+    text-align: center;
+    font-family: Inter;
+    color: white;
+}
+.liqGlassGreen {
+    background-color: rgb(255 255 255 / 15%);
+    backdrop-filter: blur(7px);
+    border-radius: 20px;
+    border: 5px ridge rgb(0 128 0 / 5%);
+    text-align: center;
+    font-family: Inter;
+    color: white;
+}
+.liqGlassBlue {
+    background-color: rgb(255 255 255 / 15%);
+    backdrop-filter: blur(7px);
+    border-radius: 20px;
+    border: 5px ridge rgb(0 0 128 / 5%);
+    text-align: center;
+    font-family: Inter;
+    color: white;
+}
+      
+h1.glass {
+    background-color: rgb(255 255 255 / 45%);
+    color: transparent;
+    background-clip: text;
+    font-family: Inter;
+    text-align: center;
+    -webkit-text-stroke: 1px rgb(255 255 255 / 5%);
+    text-shadow: 0 100 50px #ffffff;
+    font-size: 4em;
+    margin: 0;
+}
+p.glass {
+    background-color: rgb(255 255 255 / 45%);
+    color: transparent;
+    background-clip: text;
+    font-family: Inter;
+    text-align: center;
+    -webkit-text-stroke: 1px rgb(255 255 255 / 5%);
+    text-shadow: 0 100 50px #ffffff
+}
+
