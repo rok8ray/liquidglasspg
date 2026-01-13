@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Model as Player with 3rd Person Camera</title>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    #blocker {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgb(0,0,0);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-family: sans-serif;
+      cursor: pointer;
+    }
+    #loading {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-color: black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+  </style>
+</head>
+<body>
+  <div id="loading">
+  <div style="color: white; font-family: sans-serif;">Loading...</div>
+  </div>
+
+  <div id="blocker">Click to play</div>
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.140.2/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.140.2/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.140.2/examples/js/controls/PointerLockControls.js"></script>
+
+  <script>
+    const scene = new THREE.Scene();
+
+    const camera = new THREE.PerspectiveCamera(
+      75, window.innerWidth / window.innerHeight, 0.1, 1000
+    );
+
+    const renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    // Controls use a dummy Object3D as the "player"
+    const controls = new THREE.PointerLockControls(new THREE.Object3D(), document.body);
+    const blocker = document.getElementById('blocker');
+
+    blocker.addEventListener('click', () => controls.lock());
+    controls.addEventListener('lock', () => blocker.style.display = 'none');
+    controls.addEventListener('unlock', () => blocker.style.display = 'flex');
+
+    scene.add(controls.getObject()); // The "player" object
+
+    // Lighting
+    scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+    dirLight.position.set(5, 10, 5);
+    scene.add(dirLight);
+
+    // Ground Grid
+    const gridHelper = new THREE.GridHelper(100, 100);
+    scene.add(gridHelper);
+
+    const loadingMGR = new THREE.LoadingManager();
+    loadingMGR.onLoad = () => {
+      document.getElementById('loading').style.display = 'none';
+    };
+    
+    // Load player model
+    let model = null;
+    const loader = new THREE.GLTFLoader(loadingMGR);
+    loader.load('coco.glb?v=' + Date.now(), (gltf) => {
+      model = gltf.scene;
+
+      // Center and scale model
+      const box = new THREE.Box3().setFromObject(model);
+      const center = box.getCenter(new THREE.Vector3());
+      model.position.sub(center); // Center the model
+      model.scale.set(2, 2, 2);
+
+      scene.add(model); // Add model to scene (NOT to controls)
+    });
+
+    // Input
+    const keys = {};
+    document.addEventListener('keydown', (e) => keys[e.code] = true);
+    document.addEventListener('keyup', (e) => keys[e.code] = false);
+
+    function updateMovement() {
+      const speed = 0.05;
+      if (keys['KeyW']) controls.moveForward(speed);
+      if (keys['KeyS']) controls.moveForward(-speed);
+      if (keys['KeyA']) controls.moveRight(-speed);
+      if (keys['KeyD']) controls.moveRight(speed);
+      if (keys['Space']) controls.getObject().position.y += speed;
+      if (keys['ShiftLeft']) controls.getObject().position.y -= speed;
+    }
+
+    // Third-person camera offset
+    const cameraOffset = new THREE.Vector3(0, 3, 5);
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      if (controls.isLocked) {
+        updateMovement();
+
+        const player = controls.getObject();
+        const playerPos = player.position.clone();
+
+        // Get camera direction
+        const playerDir = new THREE.Vector3(0, 0, -1)
+          .applyQuaternion(player.quaternion);
+
+        const desiredCameraPos = playerPos.clone()
+          .add(playerDir.clone().multiplyScalar(-cameraOffset.z))
+          .add(new THREE.Vector3(0, cameraOffset.y, 0));
+
+        camera.position.lerp(desiredCameraPos, 0.1);
+        camera.lookAt(playerPos.x, playerPos.y + 1, playerPos.z);
+
+        if (model) {
+          // Sync model position to player position (but raise it slightly)
+          model.position.copy(playerPos);
+          model.position.y += 0.5; // Adjust this to put feet on ground
+
+          // Extract yaw (Y-axis) from player's quaternion
+          const euler = new THREE.Euler().setFromQuaternion(player.quaternion, 'YXZ');
+          model.rotation.set(0, euler.y + Math.PI, 0); // Only rotate left/right
+        }
+      }
+
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
