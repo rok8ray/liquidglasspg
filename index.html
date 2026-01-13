@@ -31,6 +31,17 @@
     <a href="/css/csstest.html">rayhealth css map</a><br>
     <a href="/css/css2.html">css blank test (i quit)</a><br>
   </details>
+  <p>Here's all the files btw</p>
+  <div id="generated-links">
+
   </div>
+  </div>
+  <script>
+fetch('links.html')
+  .then(res => res.text())
+  .then(html => {
+    document.getElementById('generated-links').innerHTML = html;
+  });
+</script>
   </body>
 </html>
