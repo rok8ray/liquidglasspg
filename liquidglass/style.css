@@ -1,0 +1,58 @@
+.liqGlass {
+  background-color: rgb(255 255 255 / 15%);
+  backdrop-filter: blur(7px);
+  border-radius: 20px;
+  border: 5px inset rgb(255 255 255 / 5%);
+  text-align: center;
+  font-family: Inter;
+  color: white;
+}
+.liqGlassRed {
+    background-color: rgb(255 255 255 / 15%);
+    backdrop-filter: blur(7px);
+    border-radius: 20px;
+    border: 5px ridge rgb(128 0 0 / 5%);
+    text-align: center;
+    font-family: Inter;
+    color: white;
+}
+.liqGlassGreen {
+    background-color: rgb(255 255 255 / 15%);
+    backdrop-filter: blur(7px);
+    border-radius: 20px;
+    border: 5px ridge rgb(0 128 0 / 5%);
+    text-align: center;
+    font-family: Inter;
+    color: white;
+}
+.liqGlassBlue {
+    background-color: rgb(255 255 255 / 15%);
+    backdrop-filter: blur(7px);
+    border-radius: 20px;
+    border: 5px ridge rgb(0 0 128 / 5%);
+    text-align: center;
+    font-family: Inter;
+    color: white;
+}
+      
+h1.glass {
+    background-color: rgb(255 255 255 / 45%);
+    color: transparent;
+    background-clip: text;
+    font-family: Inter;
+    text-align: center;
+    -webkit-text-stroke: 1px rgb(255 255 255 / 5%);
+    text-shadow: 0 100 50px #ffffff;
+    font-size: 4em;
+    margin: 0;
+}
+p.glass {
+    background-color: rgb(255 255 255 / 45%);
+    color: transparent;
+    background-clip: text;
+    font-family: Inter;
+    text-align: center;
+    -webkit-text-stroke: 1px rgb(255 255 255 / 5%);
+    text-shadow: 0 100 50px #ffffff
+}
+
