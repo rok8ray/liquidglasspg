@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>iCar Model with Glass Interior</title>
+<style>
+  body { margin: 0; overflow: hidden; }
+  #loading {
+    position:absolute;
+    top:0; left:0;
+    width:100%; height:100%;
+    background:black;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    color:white;
+    font-family:sans-serif;
+    z-index:9999;
+  }
+</style>
+</head>
+<body>
+
+<div id="loading">Loading...</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.140.2/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.140.2/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.140.2/examples/js/controls/PointerLockControls.js"></script>
+
+<script>
+const scene = new THREE.Scene();
+
+// Camera
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+camera.position.set(0, 2, 5);
+
+// Renderer
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// Controls
+const controls = new THREE.PointerLockControls(camera, document.body);
+scene.add(controls.getObject());
+document.body.addEventListener('click', () => controls.lock());
+
+// Lights
+scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+dirLight.position.set(5,10,5);
+scene.add(dirLight);
+
+// Grid helper
+scene.add(new THREE.GridHelper(500,500));
+
+// Loading manager
+const loadingManager = new THREE.LoadingManager();
+loadingManager.onLoad = () => document.getElementById('loading').style.display='none';
+
+// Texture loader
+const textureLoader = new THREE.TextureLoader(loadingManager);
+
+// --- Materials ---
+// Glass
+const glassMaterial = new THREE.MeshPhysicalMaterial({
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0.5,
+    transmission: 1.0,
+    ior: 1.5,
+    roughness: 0,
+    metalness: 0,
+    clearcoat: 1.0,
+    clearcoatRoughness: 0
+});
+
+// Seat textures
+const seatTexture = textureLoader.load("https://raw.githubusercontent.com/rok8ray/icar/refs/heads/main/textureleather.jpg");
+seatTexture.encoding = THREE.sRGBEncoding;
+seatTexture.flipY = false;
+seatTexture.wrapS = THREE.RepeatWrapping;
+seatTexture.wrapT = THREE.RepeatWrapping;
+seatTexture.repeat.set(16, 16);  // <--- this is your tiling
+
+const seatNormal = textureLoader.load("https://raw.githubusercontent.com/rok8ray/icar/refs/heads/main/Leather028_1K-JPG_NormalGL.jpg");
+seatNormal.encoding = THREE.LinearEncoding;
+
+// --- GLTF Loader ---
+const loader = new THREE.GLTFLoader(loadingManager);
+
+// Main car
+let car;
+
+loader.load('iCar.glb', gltf => {
+    car = gltf.scene;
+    const box = new THREE.Box3().setFromObject(car);
+    const center = box.getCenter(new THREE.Vector3());
+    car.position.sub(center);
+    car.position.y = 1;
+    car.rotation.y = Math.PI; // 180°
+    car.scale.set(15,15,15);
+    scene.add(car);
+});
+loader.load('iphone_17_pro.glb', gltf => {
+    const phone = gltf.scene;
+    const box = new THREE.Box3().setFromObject(phone);
+    const center = box.getCenter(new THREE.Vector3());
+    phone.position.sub(center);
+    phone.position.x += 6
+    phone.position.y += 2.5;
+    phone.position.z += 2;
+    phone.rotation.y = 0;
+    phone.scale.set(1,1,1);
+    scene.add(phone);
+});
+
+// --- Movement ---
+const keys = {};
+document.addEventListener('keydown', e => keys[e.code] = true);
+document.addEventListener('keyup', e => keys[e.code] = false);
+
+let float = 0;
+let targetY = 2;
+
+function updateMovement() {
+    const speed = 0.01;
+    if(keys['KeyW']) controls.moveForward(speed);
+    if(keys['KeyS']) controls.moveForward(-speed);
+    if(keys['KeyA']) controls.moveRight(-speed);
+    if(keys['KeyD']) controls.moveRight(speed);
+    if(keys['Space']) camera.position.y += speed;
+    if(keys['ShiftLeft']) camera.position.y -= speed;
+    if(keys['KeyP']) float = 0;
+    if(keys['KeyO']) float = 1;
+    if(keys['KeyQ']) camera.position.y = 1000;
+    if(keys['KeyL']) {
+        const targetColor = new THREE.Color(0xff0000)
+        carSt.traverse(child => {
+        if(child.isMesh && child.material.map) {
+            child.material.color.lerp(targetColor, 0.001);
+        };
+        });
+    };
+    if(keys['Digit9']) targetY += 1;
+    if(keys['Digit0']) targetY -= 1;
+}
+
+  document.addEventListener('keydown', (event) => {
+    if (!car) return;
+
+    // pick a key, e.g. "C" for color
+    if (event.key.toLowerCase() === 'x') {
+      car.traverse(obj => {
+        if (obj.isMesh && obj.material) {
+          obj.material.color.setHex(0xE01F53); // random color
+        }
+      });
+    }
+    if (event.key.toLowerCase() === 'c') {
+      car.traverse(obj => {
+        if (obj.isMesh && obj.material) {
+          obj.material.color.setHex(0x356a88); // random color
+        }
+      });
+    }
+    if (event.key.toLowerCase() === 'v') {
+      car.traverse(obj => {
+        if (obj.isMesh && obj.material) {
+          obj.material.color.setHex(0x699D7B); // random color
+        }
+      });
+    }
+  });
+  
+// --- Animate ---
+function animate() {
+    requestAnimationFrame(animate);
+    if(controls.isLocked) updateMovement();
+    renderer.render(scene, camera);
+    
+    car.rotation.y += 0.01;
+    
+    if(float === 1) {
+        camera.position.y += (targetY - camera.position.y) * 0.05;
+    }
+}
+animate();
+
+// --- Resize ---
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+
+</body>
+</html>
