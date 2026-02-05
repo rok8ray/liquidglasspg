@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Windows Notification Example</title>
+</head>
+<body>
+    <h2>Trigger Windows Notification</h2>
+    <button id="notifyBtn">Show Notification</button>
+
+    <script>
+        // Function to request permission and show notification
+        function showNotification() {
+            // Check if the Notifications API is supported
+            if (!("Notification" in window)) {
+                alert("This browser does not support desktop notifications.");
+                return;
+            }
+
+            // If permission is already granted
+            if (Notification.permission === "granted") {
+                createNotification();
+            }
+            // If permission is not denied, request it
+            else if (Notification.permission !== "denied") {
+                Notification.requestPermission().then(permission => {
+                    if (permission === "granted") {
+                        createNotification();
+                    } else {
+                        alert("Notification permission denied.");
+                    }
+                }).catch(err => {
+                    console.error("Permission request error:", err);
+                });
+            } else {
+                alert("You have blocked notifications for this site.");
+            }
+        }
+
+        // Function to create and show the notification
+        function createNotification() {
+            try {
+                const notification = new Notification("Hello from HTML!", {
+                    body: "This is a Windows desktop notification."
+                });
+
+                // Optional: Handle click event
+                notification.onclick = () => {
+                    window.focus();
+                    alert("Notification clicked!");
+                };
+            } catch (err) {
+                console.error("Notification error:", err);
+            }
+        }
+
+        // Attach event listener to button
+        document.getElementById("notifyBtn").addEventListener("click", showNotification);
+    </script>
+</body>
+</html>
